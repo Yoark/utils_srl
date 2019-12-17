@@ -10,9 +10,7 @@ from allennlp.nn.util import get_text_field_mask, sequence_cross_entropy_with_lo
 import numpy as np
 from collections import OrderedDict
 
-import torch
 import torch.backends.cudnn as cudnn
-import torch.nn as nn
 import torch.nn.init
 #import torchvision.models as models
 from torch.autograd import Variable
@@ -46,7 +44,8 @@ class ImageSRL(SemanticRoleLabeler):
         label_smoothing: float = None,
         ignore_span_metric: bool = False,
         srl_eval_path: str = DEFAULT_SRL_EVAL_PATH,
-        image_embedding_size: int = 2048
+        image_embedding_size: int = 2048,
+        lamb: float = 0.2
     ) -> None:
         super().__init__(
             vocab,
@@ -66,14 +65,14 @@ class ImageSRL(SemanticRoleLabeler):
             self.encoder.get_output_dim(),no_imgnorm=False)
         self.vse_loss = ContrastiveLoss(margin=0.2)
         # tune it 
-        self.lamb = 0.2
-        self.lamb = torch.tensor([self.lamb])
+        self.lamb = lamb
+        self.lamb = torch.tensor(self.lamb)
 
     def forward(  # type: ignore
         self,
         tokens: Dict[str, torch.LongTensor],
         verb_indicator: torch.LongTensor,
-        image_embedding: torch.Tensor,
+        img_emb,
         tags: torch.LongTensor = None,
         metadata: List[Dict[str, Any]] = None,
     ) -> Dict[str, torch.Tensor]:
@@ -131,7 +130,7 @@ class ImageSRL(SemanticRoleLabeler):
         # not sure about this
         if torch.cuda.is_available():
             self.img_enc.cuda()
-        image_embedding_resized = self.img_enc(image_embedding)
+        image_embedding_resized = self.img_enc(img_emb)
         # now compute the alignment loss.
 
         logits = self.tag_projection_layer(encoded_text)
@@ -150,8 +149,9 @@ class ImageSRL(SemanticRoleLabeler):
                 logits, tags, mask, label_smoothing=self._label_smoothing
             )
             im_sent_loss = self.vse_loss(final_states, image_embedding_resized)
-            loss =  seq2seq_loss * (1 - self.lamb) + im_sent_loss * self.lamb
-
+            
+            loss =  seq2seq_loss * (1 - self.lamb) + im_sent_loss.sum() * self.lamb
+            #loss = seq2seq_loss
             if not self.ignore_span_metric and self.span_metric is not None and not self.training:
                 batch_verb_indices = [
                     example_metadata["verb_index"] for example_metadata in metadata

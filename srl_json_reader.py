@@ -1,30 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-
-# TODO:
-# - [x] Change datareader to cornll05 train set formmat
-# - [x]  run model for test:
-# - [x] change model to accept json train test data
-# - [ ] test model
-# - [ ] adding image attenter into the model
-# - [ ] see performance
-# - [ ] make some results:
-
-
-
-ontonotes_datapath = '/media/data/srl/srl/conll-formatted-ontonotes-5.0/'
-
-
-
-
-import os
 from allennlp.data.dataset_readers import SrlReader
 from allennlp.data.dataset_readers.dataset_reader import DatasetReader
 
 
 from allennlp.data.token_indexers import SingleIdTokenIndexer, TokenIndexer
-from allennlp.data.fields import Field, TextField, SequenceLabelField, MetadataField
+from allennlp.data.fields import Field, TextField, SequenceLabelField, MetadataField, ArrayField
 from allennlp.data.instance import Instance
 from pytorch_pretrained_bert.tokenization import BertTokenizer
 from allennlp.data.tokenizers import Token
@@ -34,9 +15,9 @@ from allennlp.common.file_utils import cached_path
 from allennlp.models import srl_bert
 import json
 import numpy as np
-
-
-
+import torch
+from allennlp.data.dataset_readers.semantic_role_labeling import _convert_verb_indices_to_wordpiece_indices
+from allennlp.data.dataset_readers.semantic_role_labeling import _convert_tags_to_wordpiece_tags
 
 
 def _read(file_path):
@@ -75,18 +56,21 @@ class jsonSrlReader(SrlReader):
                     for verb_dict in srl['verbs']:
                         verb_indicator = [1 if label[-2:] == "-V" else 0 for label in verb_dict['tags']]
                         tags = verb_dict['tags']
-                        yield self.text_to_instance(tokens, verb_indictor, tags)
+                        yield self.text_to_instance(tokens, verb_indicator, tags)
 
 
 @DatasetReader.register("image_srl")
 class ImageSrlReader(SrlReader):
     
-    def _read(self, text_path, img_path=None):
-        file_path = cached_path(text_path)
+    def _read(self, folder_path):
+        #file_path = cached_path(text_path)
         #logger.info(f"Reading SRL instances fro dataset files at:{file_path}")
-        if img_path:
-            img_embs = np.load(img_path)
-        with open(file_path) as f:
+        text_path = folder_path + 'srls.json'
+        img_path = folder_path + 'ims.npy'
+        #if img_path:
+        img_embs = np.load(img_path)
+        img_embs = img_embs
+        with open(text_path) as f:
             for i, line in enumerate(f.readlines()):
                 srl = json.loads(line)
                 tokens = [Token(t) for t in srl["words"]]
@@ -98,10 +82,12 @@ class ImageSrlReader(SrlReader):
                     tags = ["O" for _ in tokens]
                     verb_label = [0 for _ in tokens]
                     yield self.text_to_instance(tokens, verb_label, img_emb, tags)
-                else:   
+                else:
                     for verb_dict in srl['verbs']:
                         verb_indicator = [1 if label[-2:] == "-V" else 0 for label in verb_dict['tags']]
                         tags = verb_dict['tags']
+                        #print(img_emb.shape)
+                        #import ipdb; ipdb.set_trace()
                         yield self.text_to_instance(tokens, verb_indicator, img_emb, tags)
 
 
@@ -133,10 +119,14 @@ class ImageSrlReader(SrlReader):
         else:
             text_field = TextField(tokens, token_indexers=self._token_indexers)
             verb_indicator = SequenceLabelField(verb_label, text_field)
+            image_imb = torch.from_numpy(image_imb)
+            #? Maybe other options???
+            img_field = ArrayField(image_imb)
 
         fields: Dict[str, Field] = {}
         fields["tokens"] = text_field
         fields["verb_indicator"] = verb_indicator
+        fields["img_emb"] = img_field
 
         if all([x == 0 for x in verb_label]):
             verb = None
@@ -158,4 +148,5 @@ class ImageSrlReader(SrlReader):
             metadata_dict["gold_tags"] = tags
 
         fields["metadata"] = MetadataField(metadata_dict)
+
         return Instance(fields)
