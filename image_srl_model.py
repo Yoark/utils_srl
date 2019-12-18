@@ -192,7 +192,8 @@ class EncoderImagePrecomp(nn.Module):
         self.embed_size = embed_size
         self.no_imgnorm = no_imgnorm
 
-        self.fc = nn.Linear(img_dim, embed_size)
+        self.fc = nn.Linear(img_dim, 512)
+        self.fc2 = nn.Linear(512, embed_size)
 
         self.init_weights()
 
@@ -202,11 +203,17 @@ class EncoderImagePrecomp(nn.Module):
                                   self.fc.out_features)
         self.fc.weight.data.uniform_(-r, r)
         self.fc.bias.data.fill_(0)
+        r2 = np.sqrt(6.) / np.sqrt(self.fc2.in_features +
+                                  self.fc2.out_features)
+        self.fc2.weight.data.uniform_(-r2, r2)
+        self.fc2.bias.data.fill_(0)
 
     def forward(self, images):
         """ extract image feature vectors """
         # assuming that the precomputed features are already l2-normalized
         features = self.fc(images.float())
+        features = F.relu(features)
+        features = self.fc2(features)
 
         # normalize in the joint embedding space
         if not self.no_imgnorm:
