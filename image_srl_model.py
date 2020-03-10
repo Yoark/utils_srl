@@ -31,6 +31,8 @@ from allennlp.models.srl_util import (
 )
 
 from allennlp.modules.matrix_attention import LinearMatrixAttention
+from allennlp.nn.util import masked_softmax
+from torch.nn.modules import Linear
 @Model.register("image_srl")
 class ImageSRL(SemanticRoleLabeler):
 
@@ -194,7 +196,7 @@ class EncoderImagePrecomp(nn.Module):
         self.embed_size = embed_size
         self.no_imgnorm = no_imgnorm
 
-        #self.fc = nn.Linear(img_dim, 512)
+        self.fc = nn.Linear(img_dim, embed_size)
 
             
         #self.fc2 = nn.Linear(512, embed_size)
@@ -207,10 +209,10 @@ class EncoderImagePrecomp(nn.Module):
                                   self.fc.out_features)
         self.fc.weight.data.uniform_(-r, r)
         self.fc.bias.data.fill_(0)
-        r2 = np.sqrt(6.) / np.sqrt(self.fc2.in_features +
-                                  self.fc2.out_features)
-        self.fc2.weight.data.uniform_(-r2, r2)
-        self.fc2.bias.data.fill_(0)
+        # r2 = np.sqrt(6.) / np.sqrt(self.fc2.in_features +
+        #                           self.fc2.out_features)
+        # self.fc2.weight.data.uniform_(-r2, r2)
+        # self.fc2.bias.data.fill_(0)
 
     def forward(self, images):
         """ extract image feature vectors """
@@ -297,6 +299,7 @@ class BoxImageSRL(SemanticRoleLabeler):
         
         self.image_embedding_size = image_embedding_size
         self.embed_dim = self.encoder.get_output_dim()
+
         self.img_enc = EncoderImagePrecomp(self.image_embedding_size, \
             self.embed_dim, no_imgnorm=False)
         self.vse_loss = ContrastiveLoss(margin=0.2)
@@ -304,6 +307,8 @@ class BoxImageSRL(SemanticRoleLabeler):
         # tune it 
         self.lamb = lamb
         self.lamb = torch.tensor(self.lamb)
+        self.tag_projection_layer = TimeDistributed(Linear((self.embed_dim * 2 ,
+                                                           self.num_classes)))
 
     def forward(  # type: ignore
         self,
@@ -351,6 +356,7 @@ class BoxImageSRL(SemanticRoleLabeler):
             A scalar loss to be optimised.
 
         """
+        import ipdb; ipdb.set_trace() 
         embedded_text_input = self.embedding_dropout(self.text_field_embedder(tokens))
         mask = get_text_field_mask(tokens)
         embedded_verb_indicator = self.binary_feature_embedding(verb_indicator.long())
@@ -372,12 +378,20 @@ class BoxImageSRL(SemanticRoleLabeler):
         # ! attention compute
         atts = self.attention(encoded_text, image_embedding_resized)
         # now compute the alignment loss.
-        contexts = []
-        # TODO normolzied the attention
-        # TODO compute context
+        #! the atts (batch, tex_seq_length, image_obj_num)
+        atts = masked_softmax(atts, mask)
+        # ? masked version?
+        contexts = torch.bmm(atts.transpose(1,2), image_embedding_resized)
+        att_code = torch.cat([encoded_text, contexts], 2)
+
+
+        # done normolzied the attention
+        # done compute context
         # ? put it in model
 
-        logits = self.tag_projection_layer(encoded_text)
+        logits = self.tag_projection_layer(att_code)
+        
+
         reshaped_log_probs = logits.view(-1, self.num_classes)
         class_probabilities = F.softmax(reshaped_log_probs, dim=-1).view(
             [batch_size, sequence_length, self.num_classes]
@@ -393,10 +407,10 @@ class BoxImageSRL(SemanticRoleLabeler):
                 logits, tags, mask, label_smoothing=self._label_smoothing
             )
             # this is the integrated loss
-            im_sent_loss = self.vse_loss(final_states, image_embedding_resized)
+            #im_sent_loss = self.vse_loss(final_states, image_embedding_resized)
             
-            loss =  seq2seq_loss * (1 - self.lamb) + im_sent_loss.sum() * self.lamb
-            #loss = seq2seq_loss
+            #loss =  seq2seq_loss * (1 - self.lamb) + im_sent_loss.sum() * self.lamb
+            loss = seq2seq_loss
             if not self.ignore_span_metric and self.span_metric is not None and not self.training:
                 batch_verb_indices = [
                     example_metadata["verb_index"] for example_metadata in metadata

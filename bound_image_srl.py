@@ -34,7 +34,7 @@ def _read(file_path):
             else:
                 continue
             verb_indictor = [1 if label[-2:] == "-V" else 0 for label in tags]
-            yield self.tokens, verb_indictor, tags
+            yield tokens, verb_indictor, tags
 
 
 # TODO add image into reader
