@@ -29,6 +29,8 @@ from allennlp.models.srl_util import (
     convert_bio_tags_to_conll_format,
     write_bio_formatted_tags_to_file,
 )
+
+from allennlp.modules.matrix_attention import LinearMatrixAttention
 @Model.register("image_srl")
 class ImageSRL(SemanticRoleLabeler):
 
@@ -192,8 +194,10 @@ class EncoderImagePrecomp(nn.Module):
         self.embed_size = embed_size
         self.no_imgnorm = no_imgnorm
 
-        self.fc = nn.Linear(img_dim, 512)
-        self.fc2 = nn.Linear(512, embed_size)
+        #self.fc = nn.Linear(img_dim, 512)
+
+            
+        #self.fc2 = nn.Linear(512, embed_size)
 
         self.init_weights()
 
@@ -212,8 +216,8 @@ class EncoderImagePrecomp(nn.Module):
         """ extract image feature vectors """
         # assuming that the precomputed features are already l2-normalized
         features = self.fc(images.float())
-        features = F.relu(features)
-        features = self.fc2(features)
+        # features = F.relu(features)
+        # features = self.fc2(features)
 
         # normalize in the joint embedding space
         if not self.no_imgnorm:
@@ -259,3 +263,168 @@ class ContrastiveLoss(nn.Module):
         loss_im = loss_im.mean(0)
 
         return loss_s + loss_im
+
+@Model.register("box_image_srl")
+class BoxImageSRL(SemanticRoleLabeler):
+
+    def __init__(
+        self,
+        vocab: Vocabulary,
+        text_field_embedder: TextFieldEmbedder,
+        encoder: Seq2SeqEncoder,
+        binary_feature_dim: int,
+        embedding_dropout: float = 0.0,
+        initializer: InitializerApplicator = InitializerApplicator(),
+        regularizer: Optional[RegularizerApplicator] = None,
+        label_smoothing: float = None,
+        ignore_span_metric: bool = False,
+        srl_eval_path: str = DEFAULT_SRL_EVAL_PATH,
+        image_embedding_size: int = 2052,
+        lamb: float = 0.2
+    ) -> None:
+        super().__init__(
+            vocab,
+            text_field_embedder,
+            encoder,
+            binary_feature_dim,
+            embedding_dropout,
+            initializer,
+            regularizer,
+            label_smoothing,
+            ignore_span_metric,
+            srl_eval_path,
+        )
+        
+        self.image_embedding_size = image_embedding_size
+        self.embed_dim = self.encoder.get_output_dim()
+        self.img_enc = EncoderImagePrecomp(self.image_embedding_size, \
+            self.embed_dim, no_imgnorm=False)
+        self.vse_loss = ContrastiveLoss(margin=0.2)
+        self.attention = LinearMatrixAttention(self.embed_dim, self.embed_dim)
+        # tune it 
+        self.lamb = lamb
+        self.lamb = torch.tensor(self.lamb)
+
+    def forward(  # type: ignore
+        self,
+        tokens: Dict[str, torch.LongTensor],
+        verb_indicator: torch.LongTensor,
+        img_emb,
+        tags: torch.LongTensor = None,
+        metadata: List[Dict[str, Any]] = None,
+    ) -> Dict[str, torch.Tensor]:
+
+        """
+        image_embedding: (batch_size, image_embedding_size)
+        Parameters
+        ----------
+        tokens : Dict[str, torch.LongTensor], required
+            The output of ``TextField.as_array()``, which should typically be passed directly to a
+            ``TextFieldEmbedder``. This output is a dictionary mapping keys to ``TokenIndexer``
+            tensors.  At its most basic, using a ``SingleIdTokenIndexer`` this is: ``{"tokens":
+            Tensor(batch_size, num_tokens)}``. This dictionary will have the same keys as were used
+            for the ``TokenIndexers`` when you created the ``TextField`` representing your
+            sequence.  The dictionary is designed to be passed directly to a ``TextFieldEmbedder``,
+            which knows how to combine different word representations into a single vector per
+            token in your input.
+        verb_indicator: torch.LongTensor, required.
+            An integer ``SequenceFeatureField`` representation of the position of the verb
+            in the sentence. This should have shape (batch_size, num_tokens) and importantly, can be
+            all zeros, in the case that the sentence has no verbal predicate.
+        tags : torch.LongTensor, optional (default = None)
+            A torch tensor representing the sequence of integer gold class labels
+            of shape ``(batch_size, num_tokens)``
+        metadata : ``List[Dict[str, Any]]``, optional, (default = None)
+            metadata containg the original words in the sentence and the verb to compute the
+            frame for, under 'words' and 'verb' keys, respectively.
+
+        Returns
+        -------
+        An output dictionary consisting of:
+        logits : torch.FloatTensor
+            A tensor of shape ``(batch_size, num_tokens, tag_vocab_size)`` representing
+            unnormalised log probabilities of the tag classes.
+        class_probabilities : torch.FloatTensor
+            A tensor of shape ``(batch_size, num_tokens, tag_vocab_size)`` representing
+            a distribution of the tag classes per word.
+        loss : torch.FloatTensor, optional
+            A scalar loss to be optimised.
+
+        """
+        embedded_text_input = self.embedding_dropout(self.text_field_embedder(tokens))
+        mask = get_text_field_mask(tokens)
+        embedded_verb_indicator = self.binary_feature_embedding(verb_indicator.long())
+        # Concatenate the verb feature onto the embedded text. This now
+        # has shape (batch_size, sequence_length, embedding_dim + binary_feature_dim).
+        embedded_text_with_verb_indicator = torch.cat(
+            [embedded_text_input, embedded_verb_indicator], -1
+        )
+        batch_size, sequence_length, _ = embedded_text_with_verb_indicator.size()
+        #TODO I need to change here 
+        encoded_text = self.encoder(embedded_text_with_verb_indicator, mask)
+        # get final states of shape (batch, embedding_size)
+        # ! this is commmented out
+        # final_states = get_final_encoder_states(encoded_text, mask)
+        # not sure about this
+        if torch.cuda.is_available():
+            self.img_enc.cuda()
+        image_embedding_resized = self.img_enc(img_emb)
+        # ! attention compute
+        atts = self.attention(encoded_text, image_embedding_resized)
+        # now compute the alignment loss.
+        contexts = []
+        # TODO normolzied the attention
+        # TODO compute context
+        # ? put it in model
+
+        logits = self.tag_projection_layer(encoded_text)
+        reshaped_log_probs = logits.view(-1, self.num_classes)
+        class_probabilities = F.softmax(reshaped_log_probs, dim=-1).view(
+            [batch_size, sequence_length, self.num_classes]
+        )
+        output_dict = {"logits": logits, "class_probabilities": class_probabilities}
+        # We need to retain the mask in the output dictionary
+        # so that we can crop the sequences to remove padding
+        # when we do viterbi inference in self.decode.
+        output_dict["mask"] = mask
+
+        if tags is not None:
+            seq2seq_loss = sequence_cross_entropy_with_logits(
+                logits, tags, mask, label_smoothing=self._label_smoothing
+            )
+            # this is the integrated loss
+            im_sent_loss = self.vse_loss(final_states, image_embedding_resized)
+            
+            loss =  seq2seq_loss * (1 - self.lamb) + im_sent_loss.sum() * self.lamb
+            #loss = seq2seq_loss
+            if not self.ignore_span_metric and self.span_metric is not None and not self.training:
+                batch_verb_indices = [
+                    example_metadata["verb_index"] for example_metadata in metadata
+                ]
+                batch_sentences = [example_metadata["words"] for example_metadata in metadata]
+                # Get the BIO tags from decode()
+                # TODO (nfliu): This is kind of a hack, consider splitting out part
+                # of decode() to a separate function.
+                batch_bio_predicted_tags = self.decode(output_dict).pop("tags")
+                batch_conll_predicted_tags = [
+                    convert_bio_tags_to_conll_format(tags) for tags in batch_bio_predicted_tags
+                ]
+                batch_bio_gold_tags = [
+                    example_metadata["gold_tags"] for example_metadata in metadata
+                ]
+                batch_conll_gold_tags = [
+                    convert_bio_tags_to_conll_format(tags) for tags in batch_bio_gold_tags
+                ]
+                self.span_metric(
+                    batch_verb_indices,
+                    batch_sentences,
+                    batch_conll_predicted_tags,
+                    batch_conll_gold_tags,
+                )
+            output_dict["loss"] = loss
+
+        words, verbs = zip(*[(x["words"], x["verb"]) for x in metadata])
+        if metadata is not None:
+            output_dict["words"] = list(words)
+            output_dict["verb"] = list(verbs)
+        return output_dict
