@@ -307,8 +307,8 @@ class BoxImageSRL(SemanticRoleLabeler):
         # tune it 
         self.lamb = lamb
         self.lamb = torch.tensor(self.lamb)
-        self.tag_projection_layer = TimeDistributed(Linear((self.embed_dim * 2 ,
-                                                           self.num_classes)))
+        self.tag_projection_layer = TimeDistributed(Linear(self.embed_dim * 2 ,
+                                                           self.num_classes))
 
     def forward(  # type: ignore
         self,
@@ -356,7 +356,7 @@ class BoxImageSRL(SemanticRoleLabeler):
             A scalar loss to be optimised.
 
         """
-        import ipdb; ipdb.set_trace() 
+        #import ipdb; ipdb.set_trace() 
         embedded_text_input = self.embedding_dropout(self.text_field_embedder(tokens))
         mask = get_text_field_mask(tokens)
         embedded_verb_indicator = self.binary_feature_embedding(verb_indicator.long())
@@ -379,6 +379,7 @@ class BoxImageSRL(SemanticRoleLabeler):
         atts = self.attention(encoded_text, image_embedding_resized)
         # now compute the alignment loss.
         #! the atts (batch, tex_seq_length, image_obj_num)
+        import ipdb; ipdb.set_trace() 
         atts = masked_softmax(atts, mask)
         # ? masked version?
         contexts = torch.bmm(atts.transpose(1,2), image_embedding_resized)
