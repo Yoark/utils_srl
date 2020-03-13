@@ -8,3 +8,6 @@
 ## Analysis
 - [ ] check the obtained mapping between img feat and text entities/(semantic roles)
 - [ ] visualize
+## Test
+- [x] Create toy dataset for debugging
+- [ ] fix the ipdb bug
