@@ -20,10 +20,9 @@ from torch.nn import functional as F
 from torch.nn.utils.clip_grad import clip_grad_norm_
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-from utils import make_embeddings, l2norm, cosine_sim, sequence_mask, \
+from ..utils import make_embeddings, l2norm, cosine_sim, sequence_mask, \
     index_mask, index_one_hot_ellipsis
 from allennlp.nn import InitializerApplicator, RegularizerApplicator
-import utils
 from allennlp.training.metrics.srl_eval_scorer import SrlEvalScorer, DEFAULT_SRL_EVAL_PATH
 from allennlp.models.srl_util import (
     convert_bio_tags_to_conll_format,
@@ -33,6 +32,9 @@ from allennlp.models.srl_util import (
 from allennlp.modules.matrix_attention import LinearMatrixAttention
 from allennlp.nn.util import masked_softmax
 from torch.nn.modules import Linear
+import ipdb
+import pdb
+
 @Model.register("image_srl")
 class ImageSRL(SemanticRoleLabeler):
 
@@ -70,7 +72,7 @@ class ImageSRL(SemanticRoleLabeler):
         self.vse_loss = ContrastiveLoss(margin=0.2)
         # tune it 
         self.lamb = lamb
-        self.lamb = torch.tensor(self.lamb)
+        self.lamb = torch.Tensor(self.lamb)
 
     def forward(  # type: ignore
         self,
@@ -379,10 +381,11 @@ class BoxImageSRL(SemanticRoleLabeler):
         atts = self.attention(encoded_text, image_embedding_resized)
         # now compute the alignment loss.
         #! the atts (batch, tex_seq_length, image_obj_num)
-        import ipdb; ipdb.set_trace() 
-        atts = masked_softmax(atts, mask)
+        # ipdb.set_trace() 
+        atts = masked_softmax(atts, mask.unsqueeze(2), dim=2)
         # ? masked version?
-        contexts = torch.bmm(atts.transpose(1,2), image_embedding_resized)
+        # ipdb.set_trace()
+        contexts = torch.bmm(atts, image_embedding_resized)
         att_code = torch.cat([encoded_text, contexts], 2)
 
 

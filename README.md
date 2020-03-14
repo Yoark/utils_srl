@@ -10,4 +10,6 @@
 - [ ] visualize
 ## Test
 - [x] Create toy dataset for debugging
-- [ ] fix the ipdb bug
+- [x] fix the ipdb bug
+- [ ] create dubug file
+- [ ] clean the model and loader modules

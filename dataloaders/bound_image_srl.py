@@ -19,47 +19,7 @@ import torch
 from allennlp.data.dataset_readers.semantic_role_labeling import _convert_verb_indices_to_wordpiece_indices
 from allennlp.data.dataset_readers.semantic_role_labeling import _convert_tags_to_wordpiece_tags
 
-from utils import load_obj_tsv
-
-def _read(file_path):
-    file_path = cached_path(file_path)
-    #logger.info(f"Reading SRL instances fro dataset files at:{file_path}")
-    with open(file_path) as f:
-        for line in f.readlines():
-            srl = json.loads(line)
-            tokens = [Token(t) for t in srl["words"]]
-            # to test module, need more work
-            if srl['verbs']:
-                tags = srl['verbs'][0]['tags']
-            else:
-                continue
-            verb_indictor = [1 if label[-2:] == "-V" else 0 for label in tags]
-            yield tokens, verb_indictor, tags
-
-
-# TODO add image into reader
-@DatasetReader.register("json_srl")
-class jsonSrlReader(SrlReader):
-    
-    def _read(self, file_path):
-        file_path = cached_path(file_path)
-        #logger.info(f"Reading SRL instances fro dataset files at:{file_path}")
-        with open(file_path) as f:
-            for line in f.readlines():
-                srl = json.loads(line)
-                tokens = [Token(t) for t in srl["words"]]
-                if not srl['verbs']:
-                # Sentence contains no predicates.
-                    tags = ["O" for _ in tokens]
-                    verb_label = [0 for _ in tokens]
-                    yield self.text_to_instance(tokens, verb_label, tags)
-                else:   
-                    for verb_dict in srl['verbs']:
-                        verb_indicator = [1 if label[-2:] == "-V" else 0 for label in verb_dict['tags']]
-                        tags = verb_dict['tags']
-                        yield self.text_to_instance(tokens, verb_indicator, tags)
-
-
+from ..utils import load_obj_tsv
 @DatasetReader.register("bound_image_srl")
 class BoundSrlReader(SrlReader):
 
@@ -88,8 +48,8 @@ class BoundSrlReader(SrlReader):
                 verb_indicator = [1 if label[-2:] == "-V" else 0 for label in tags]
 
                 # remove .jpg
-                img = self.imgid2img[srl["image"][:-4]]
 
+                img = self.imgid2img[srl["image"][:-4]]
                 yield self.text_to_instance(tokens, verb_indicator, img, tags)
 
 
@@ -153,7 +113,6 @@ class BoundSrlReader(SrlReader):
         metadata_dict["words"] = [x.text for x in tokens]
         metadata_dict["verb"] = verb
         metadata_dict["verb_index"] = verb_index
-        # metadata_dict["tags"] = tags
 
         if tags:
             if self.bert_tokenizer is not None:
