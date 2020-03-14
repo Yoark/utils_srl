@@ -350,7 +350,7 @@ class BoxImageSRL(SemanticRoleLabeler):
         An output dictionary consisting of:
         logits : torch.FloatTensor
             A tensor of shape ``(batch_size, num_tokens, tag_vocab_size)`` representing
-            unnormalised log probabilities of the tag classes.
+            unnormalised log probabilities of the tag classes.your own data in 
         class_probabilities : torch.FloatTensor
             A tensor of shape ``(batch_size, num_tokens, tag_vocab_size)`` representing
             a distribution of the tag classes per word.

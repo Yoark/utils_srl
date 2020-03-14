@@ -25,18 +25,34 @@ class BoundSrlReader(SrlReader):
 
     def __init__(self, token_indexers=None, domain_identifier=None, lazy=False, bert_model_name=None):
         super().__init__(token_indexers=token_indexers, domain_identifier=domain_identifier, lazy=lazy, bert_model_name=bert_model_name)
+        # ! here 's test:
+        self.train_file = '/home/zijiao/research/data/Flicker/mscoco_imgfeat/train/imgs.tsv'
+        self.val_file = '/home/zijiao/research/data/Flicker/mscoco_imgfeat/toy/imgs.tsv'
+        self.train_imgid2img = self.load_feature(self.train_file)
+        self.val_imgid2img = self.load_feature(self.val_file)
         self.imgid2img = {}
 
-    
+    def load_feature(self, file_path):
+        imgid2img = {}
+        self.features = load_obj_tsv(file_path)
+        for img_datum in self.features:
+            imgid2img[img_datum['img_id']] = img_datum
+        return imgid2img
+
     def _read(self, folder_path):
         #file_path = cached_path(text_path)
         #logger.info(f"Reading SRL instances fro dataset files at:{file_path}")
         text_file = folder_path + 'srls.json'
-        img_file = folder_path + 'imgs.tsv'
+        # ! This is commendted out for experiemnt
+        if 'val' in folder_path.split('/'):
+            self.imgid2img = self.val_imgid2img
+        else:
+            self.imgid2img = self.train_imgid2img
+        # img_file = folder_path + 'imgs.tsv'
         #if img_path:
-        img_features = load_obj_tsv(img_file)
-        for img_datum in img_features:
-            self.imgid2img[img_datum['img_id']] = img_datum
+        # img_features = load_obj_tsv(img_file)
+        # for img_datum in img_features:
+            # self.imgid2img[img_datum['img_id']] = img_datum
 
         with open(text_file) as f:
             quples = json.loads(f.read())
@@ -49,6 +65,7 @@ class BoundSrlReader(SrlReader):
 
                 # remove .jpg
 
+                # 
                 img = self.imgid2img[srl["image"][:-4]]
                 yield self.text_to_instance(tokens, verb_indicator, img, tags)
 
@@ -125,3 +142,4 @@ class BoundSrlReader(SrlReader):
         fields["metadata"] = MetadataField(metadata_dict)
 
         return Instance(fields)
+
