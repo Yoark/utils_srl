@@ -20,16 +20,31 @@ from allennlp.data.dataset_readers.semantic_role_labeling import _convert_verb_i
 from allennlp.data.dataset_readers.semantic_role_labeling import _convert_tags_to_wordpiece_tags
 
 from ..utils import load_obj_tsv
+from typing import Iterable, Iterator, Callable
+import logging
+import os
+import pathlib
+
+import jsonpickle
+
+from allennlp.data.instance import Instance
+from allennlp.common import Tqdm, util
+from allennlp.common.checks import ConfigurationError
+from allennlp.common.registrable import Registrable
+from allennlp.data.dataset_readers.dataset_reader import _LazyInstances
+
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
+
 @DatasetReader.register("bound_image_srl")
 class BoundSrlReader(SrlReader):
 
     def __init__(self, token_indexers=None, domain_identifier=None, lazy=False, bert_model_name=None):
         super().__init__(token_indexers=token_indexers, domain_identifier=domain_identifier, lazy=lazy, bert_model_name=bert_model_name)
         # ! here 's test:
-        self.train_file = '/home/zijiao/research/data/Flicker/mscoco_imgfeat/train/imgs.tsv'
-        self.val_file = '/home/zijiao/research/data/Flicker/mscoco_imgfeat/toy/imgs.tsv'
-        self.train_imgid2img = self.load_feature(self.train_file)
-        self.val_imgid2img = self.load_feature(self.val_file)
+        # self.train_file = '/home/zijiao/research/data/Flicker/mscoco_imgfeat/toy/imgs.tsv'
+        # self.val_file = '/home/zijiao/research/data/Flicker/mscoco_imgfeat/toy/imgs.tsv'
+        # self.train_imgid2img = self.load_feature(self.train_file)
+        # self.val_imgid2img = self.load_feature(self.val_file)
         self.imgid2img = {}
 
     def load_feature(self, file_path):
@@ -39,16 +54,74 @@ class BoundSrlReader(SrlReader):
             imgid2img[img_datum['img_id']] = img_datum
         return imgid2img
 
+    def read(self, file_path: str) -> Iterable[Instance]:
+        """
+        Returns an ``Iterable`` containing all the instances
+        in the specified dataset.
+
+        If ``self.lazy`` is False, this calls ``self._read()``,
+        ensures that the result is a list, then returns the resulting list.
+
+        If ``self.lazy`` is True, this returns an object whose
+        ``__iter__`` method calls ``self._read()`` each iteration.
+        In this case your implementation of ``_read()`` must also be lazy
+        (that is, not load all instances into memory at once), otherwise
+        you will get a ``ConfigurationError``.
+
+        In either case, the returned ``Iterable`` can be iterated
+        over multiple times. It's unlikely you want to override this function,
+        but if you do your result should likewise be repeatedly iterable.
+        """
+        self.file = os.path.join(file_path,'imgs.tsv')
+        self.imgid2img = self.load_feature(self.file)
+
+        lazy = getattr(self, 'lazy', None)
+
+        if lazy is None:
+            logger.warning("DatasetReader.lazy is not set, "
+                           "did you forget to call the superclass constructor?")
+
+        if self._cache_directory:
+            cache_file = self._get_cache_location_for_file_path(file_path)
+        else:
+            cache_file = None
+
+        if lazy:
+            return _LazyInstances(lambda: self._read(file_path),
+                                  cache_file,
+                                  self.deserialize_instance,
+                                  self.serialize_instance)
+        else:
+            # First we read the instances, either from a cache or from the original file.
+            if cache_file and os.path.exists(cache_file):
+                instances = self._instances_from_cache_file(cache_file)
+            else:
+                instances = self._read(file_path)
+
+            # Then some validation.
+            if not isinstance(instances, list):
+                instances = [instance for instance in Tqdm.tqdm(instances)]
+            if not instances:
+                raise ConfigurationError("No instances were read from the given filepath {}. "
+                                         "Is the path correct?".format(file_path))
+
+            # And finally we write to the cache if we need to.
+            if cache_file and not os.path.exists(cache_file):
+                logger.info(f"Caching instances to {cache_file}")
+                self._instances_to_cache_file(cache_file, instances)
+
+            return instances
+
     def _read(self, folder_path):
         #file_path = cached_path(text_path)
         #logger.info(f"Reading SRL instances fro dataset files at:{file_path}")
-        text_file = folder_path + 'srls.json'
+        text_file = os.path.join(folder_path, 'srls.json')
         # ! This is commendted out for experiemnt
-        if 'val' in folder_path.split('/'):
-            self.imgid2img = self.val_imgid2img
-        else:
-            self.imgid2img = self.train_imgid2img
-        # img_file = folder_path + 'imgs.tsv'
+        # if 'val' in folder_path.split('/'):
+        #     self.imgid2img = self.val_imgid2img
+        # else:
+        #     self.imgid2img = self.train_imgid2img
+        # # img_file = folder_path + 'imgs.tsv'
         #if img_path:
         # img_features = load_obj_tsv(img_file)
         # for img_datum in img_features:
