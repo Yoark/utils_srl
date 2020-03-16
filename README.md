@@ -18,3 +18,4 @@
 - [x] fix the ipdb bug
 - [x] create dubug file
 - [x] clean the model and loader modules
+NEED TO MAKE LOADING MORE EFFICIENT, currently reread overly
