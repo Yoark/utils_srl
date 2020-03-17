@@ -78,7 +78,16 @@
 }
 ``````
 
+### Training
+
+- [ ] Do meta learning ?? to transfer mscoco to generate on Flikcer??
+- [ ] few shot learning?
+- [ ] Transferring?
+- [ ] Flikcer has at least 2k available data to use. fine tune on that ????
+- [ ] 
+
 ### Attention
+
 - [x] naive top down attention /half way
 - [x] Top down attention combined with alignment score/ **half way**
 - [ ] co-attention
