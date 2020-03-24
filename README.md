@@ -98,7 +98,7 @@
   - Now: 
 
 - [ ] Perform evaluation on Flicker test dataset
-
+- [x] Perform evaluation on same splits of mscoco dataset for old model
   
 
 ## Analysis

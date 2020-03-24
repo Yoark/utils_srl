@@ -75,7 +75,7 @@ class ImageSrlReader(SrlReader):
                 srl = json.loads(line)
                 tokens = [Token(t) for t in srl["words"]]
                 # ? maybe put it somewhere else
-                img_id = i // 5
+                img_id = i  
                 img_emb = img_embs[img_id]
                 if not srl['verbs']:
                 # Sentence contains no predicates.

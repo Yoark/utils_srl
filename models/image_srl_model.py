@@ -72,7 +72,7 @@ class ImageSRL(SemanticRoleLabeler):
         self.vse_loss = ContrastiveLoss(margin=0.2)
         # tune it 
         self.lamb = lamb
-        self.lamb = torch.Tensor(self.lamb)
+        self.lamb = torch.tensor(self.lamb)
 
     def forward(  # type: ignore
         self,
