@@ -12,11 +12,11 @@
 - [x] try naive solution currently have
 - [x] Solve the memory problem, by make it **lazy**
 - [ ] use lxmert solution, that loads data with two class interaction
-- [ ] Optimize the image feature reading step./ **half way, buggy**
+- [x] Optimize the image feature reading step./ **half way, buggy**
 ## Dataset
 - [x] Create val, test set for mscoco for current model
 - [x] Modify the model before (which only use alignment score as the interaction channel between image and caption) that could take in current data format / **half way**
-- [ ] Create Flicker test dataset 
+- [x] Create Flicker test dataset 
 ## Model:
 
 ### Parameters:
@@ -91,13 +91,19 @@
 - [x] naive top down attention /half way
 - [x] Top down attention combined with alignment score/ **half way**
 - [ ] co-attention
+- [ ] Combine the **alignment score** and **attention**
 ## Results
 
 - 0.885 f1 score for validation for attention model
 - 0.884 for bilstm and highway, 0.877 for alignment model. **But this comparision is based on a different data split.** The validation data used now is a lot larger than before
   - Now: 
+0.823??? bug??? need more epochs?
+0.887 for same split of mscoco on old model
 
-- [ ] Perform evaluation on Flicker test dataset
+$$$ Evaluate 
+0.64 on flicker number of sampes can be increase (
+- [ ] Perform evaluation on Flicker test dataset(to make fair comparision between old model and att model, need to generate image feature(whole image) with RCNN ??
+- [ ] create flicker test dataset for old model?
 - [x] Perform evaluation on same splits of mscoco dataset for old model
   
 
@@ -106,6 +112,7 @@
 - [ ] check the obtained mapping between img feat and text entities/(semantic roles)
 - [ ] visualize
 - [ ] Ablations : attention + others, compares to others. to investigate how much image helps
+- [ ] Check with the help of image, how is the error distribution changed.
 ## Testing
 - [x] Create toy dataset for debugging
 - [x] fix the ipdb bug
