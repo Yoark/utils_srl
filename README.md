@@ -12,11 +12,12 @@
 - [x] try naive solution currently have
 - [x] Solve the memory problem, by make it **lazy**
 - [ ] use lxmert solution, that loads data with two class interaction
-- [x] Optimize the image feature reading step./ **half way, buggy**
+- [x] Optimize the image feature reading step.
 ## Dataset
 - [x] Create val, test set for mscoco for current model
 - [x] Modify the model before (which only use alignment score as the interaction channel between image and caption) that could take in current data format / **half way**
 - [x] Create Flicker test dataset 
+- [ ] Validate that the two dataset for two models contains same entities.
 ## Model:
 
 ### Parameters:
@@ -79,7 +80,7 @@
 ``````
 
 ### Training
-
+- [x] train every model for 50 epochs.
 - [ ] Do meta learning ?? to transfer mscoco to generate on Flikcer??
 - [ ] few shot learning?
 - [ ] Transferring?
@@ -102,6 +103,7 @@
 
 $$$ Evaluate 
 0.64 on flicker number of sampes can be increase (
+0.75 f1 score on 3177 data points.
 - [ ] Perform evaluation on Flicker test dataset(to make fair comparision between old model and att model, need to generate image feature(whole image) with RCNN ??
 - [ ] create flicker test dataset for old model?
 - [x] Perform evaluation on same splits of mscoco dataset for old model
