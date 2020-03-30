@@ -44,10 +44,10 @@ class BoundSrlReader(SrlReader):
         # self.val_file = '/home/zijiao/research/data/Flicker/mscoco_imgfeat/data_created/val/imgs.tsv'
         # self.train_imgid2img = self.load_feature(self.train_file)
         # self.val_imgid2img = self.load_feature(self.val_file)
-        self.imgid2img = {}
-        self.img_file = ''
-        self.text_file ='' 
-        self.folder_path = '' 
+        # self.imgid2img = {}
+        # self.img_file = ''
+        # self.text_file ='' 
+        # self.folder_path = '' 
 
     def load_feature(self, file_path):
         imgid2img = {}
@@ -74,9 +74,9 @@ class BoundSrlReader(SrlReader):
         over multiple times. It's unlikely you want to override this function,
         but if you do your result should likewise be repeatedly iterable.
         """
-        self.folder_path = file_path
-        self.img_file = os.path.join(self.folder_path,'imgs.tsv')
-        self.imgid2img = self.load_feature(self.img_file)
+        # self.folder_path = file_path
+        img_file = os.path.join(file_path,'imgs.tsv')
+        imgid2img = self.load_feature(img_file)
 
         lazy = getattr(self, 'lazy', None)
 
@@ -90,7 +90,7 @@ class BoundSrlReader(SrlReader):
             cache_file = None
 
         if lazy:
-            return _LazyInstances(lambda: self._read(self.folder_path),
+            return _LazyInstances(lambda: self._read(file_path, imgid2img),
                                   cache_file,
                                   self.deserialize_instance,
                                   self.serialize_instance)
@@ -115,11 +115,11 @@ class BoundSrlReader(SrlReader):
 
             return instances
 
-    def _read(self, folder_path):
+    def _read(self, file_path, imgid2img):
         #file_path = cached_path(text_path)
         #logger.info(f"Reading SRL instances fro dataset files at:{file_path}")
-        self.folder_path = folder_path
-        self.text_file = os.path.join(self.folder_path, 'srls.json')
+        # self.folder_path = folder_path
+        text_file = os.path.join(file_path, 'srls.json')
         # ! This is commendted out for experiemnt
         # if 'val' in folder_path.split('/'):
         #     self.imgid2img = self.val_imgid2img
@@ -131,7 +131,7 @@ class BoundSrlReader(SrlReader):
         # for img_datum in img_features:
             # self.imgid2img[img_datum['img_id']] = img_datum
 
-        with open(self.text_file) as f:
+        with open(text_file) as f:
             quples = json.loads(f.read())
             for srl in quples:
                 tokens = [Token(t) for t in srl["caption"].split()]
@@ -144,7 +144,7 @@ class BoundSrlReader(SrlReader):
 
                 # 
                 # import ipdb; ipdb.set_trace()
-                img = self.imgid2img[srl["image"][:-4]]
+                img = imgid2img[srl["image"][:-4]]
                 yield self.text_to_instance(tokens, verb_indicator, img, tags)
 
 
