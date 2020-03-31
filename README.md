@@ -2,6 +2,20 @@
 
 # Plan
 
+## Current Week
+
+- [x] Cleaned and Create over 5000 flicker data points ready to use for fine tuning or evaluation
+- [x] Train on more epochs (50), achieve 0.73, 0.75 for new, old model on flicker evaluation set (3177), also pure text model 0.75
+- [x] Fixed model bug
+- [x] Create resnet features for Flicker dataset and converted flicker evaluation data to old model format
+
+## Next Step
+
+- [ ] Fine tuning
+- [ ] Co-attention
+- [ ] alignment-attention model
+- [ ] Check what gained for new model VS old model VS pure text model by inspecting errors
+
 ## Objective
 
 - [x] Build multimodel that read in image + caption, outputs: srl labels for captions
@@ -104,8 +118,8 @@
 $$$ Evaluate 
 0.64 on flicker number of sampes can be increase (
 0.75 f1 score on 3177 data points.
-- [ ] Perform evaluation on Flicker test dataset(to make fair comparision between old model and att model, need to generate image feature(whole image) with RCNN ??
-- [ ] create flicker test dataset for old model?
+- [x] Perform evaluation on Flicker test dataset(to make fair comparision between old model and att model, need to generate image feature(whole image) with RCNN ??
+- [x] create flicker test dataset for old model?
 - [x] Perform evaluation on same splits of mscoco dataset for old model
   
 
