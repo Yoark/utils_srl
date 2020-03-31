@@ -6,7 +6,7 @@
 
 - [x] Cleaned and Create over 5000 flicker data points ready to use for fine tuning or evaluation
 
-- [x] Train on more epochs (50), achieve 0.7572, 0.7395 for new, old model on flicker evaluation set (3177), also pure text model 0.7525.
+- [x] Train on more epochs (50), achieve 0.7572, 0.7395 for new, old model on flicker evaluation set (3127), also pure text model 0.7525.
 
   - [x] | attention+bilstm, img bounding boxes+text | alignment+bilstm, img+text | text   |
     | :---------------------------------------: | -------------------------- | ------ |
@@ -18,7 +18,9 @@
 
 ## Next Step
 
-- [ ] Another loader bug!!!
+- [x] Another loader bug!!!
+- [ ] ==Data source==
+- [ ] Danny dag (Oregon State uNiv)
 - [ ] Fine tuning
 - [ ] Co-attention
 - [ ] alignment-attention model
