@@ -5,12 +5,20 @@
 ## Current Week
 
 - [x] Cleaned and Create over 5000 flicker data points ready to use for fine tuning or evaluation
-- [x] Train on more epochs (50), achieve 0.73, 0.75 for new, old model on flicker evaluation set (3177), also pure text model 0.75
+
+- [x] Train on more epochs (50), achieve 0.7572, 0.7395 for new, old model on flicker evaluation set (3177), also pure text model 0.7525.
+
+  - [x] | attention+bilstm, img bounding boxes+text | alignment+bilstm, img+text | text   |
+    | :---------------------------------------: | -------------------------- | ------ |
+    |                  0.7572                   | 0.7395                     | 0.7525 |
+
 - [x] Fixed model bug
+
 - [x] Create resnet features for Flicker dataset and converted flicker evaluation data to old model format
 
 ## Next Step
 
+- [ ] Another loader bug!!!
 - [ ] Fine tuning
 - [ ] Co-attention
 - [ ] alignment-attention model
@@ -163,5 +171,10 @@ NEED TO MAKE LOADING MORE EFFICIENT, currently reread overly
 
   * graduating in summer, but won't affect anything as said by some admission officers
 
-  
+## After
+
+- [ ] School selection, about the APs
+- [ ] 
+
+
 
