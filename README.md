@@ -6,23 +6,22 @@
 
 - [x] Cleaned and Create over 5000 flicker data points ready to use for fine tuning or evaluation
 
-- [x] Train on more epochs (50), achieve 0.7572, 0.7395 for new, old model on flicker evaluation set (3177), also pure text model 0.7525.
-
-  - [x] | attention+bilstm, img bounding boxes+text | alignment+bilstm, img+text | text   |
-    | :---------------------------------------: | -------------------------- | ------ |
-    |                  0.7572                   | 0.7395                     | 0.7525 |
-
 - [x] Fixed model bug
+
+- [x] Train on more epochs (50) atten model compared to **pure text** +.47, compared to **old model** +1.77 F1 
+
+  - [x] | attention+bilstm, img bounding boxes+text | alignment+bilstm, img+text | text  |
+    | :---------------------------------------: | -------------------------- | ----- |
+    |                   75.72                   | 73.95                      | 75.25 |
 
 - [x] Create resnet features for Flicker dataset and converted flicker evaluation data to old model format
 
 ## Next Step
-
-- [ ] Another loader bug!!!
+- [ ] Baseline
 - [ ] Fine tuning
 - [ ] Co-attention
 - [ ] alignment-attention model
-- [ ] Check what gained for new model VS old model VS pure text model by inspecting errors
+- [ ] Check what gained for new model VS old model VS pure text model by inspecting errors, to create new inductive bias that can **be applied to architecture modification**
 
 ## Objective
 
@@ -133,16 +132,18 @@ $$$ Evaluate
 
 ## Analysis
 - [x] Check the model training, especially the decoding part.
+- [ ] 
 - [ ] check the obtained mapping between img feat and text entities/(semantic roles)
 - [ ] visualize
-- [ ] Ablations : attention + others, compares to others. to investigate how much image helps
-- [ ] Check with the help of image, how is the error distribution changed.
+- [x] Ablations : attention + others, compares to others. to investigate how much image helps
+- [ ] Simple baselines
 ## Testing
 - [x] Create toy dataset for debugging
 - [x] fix the ipdb bug
 - [x] create dubug file
 - [x] clean the model and loader modules
 NEED TO MAKE LOADING MORE EFFICIENT, currently reread overly
+- [ ] Another loader bug(???)
 
 ## Writing
 
