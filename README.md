@@ -21,12 +21,12 @@
 - [x] Another loader bug!!!
 - [i] ==Data source==
 - [x] Danny dag (Oregon State uNiv)
-- [ ] Fine tuning
+- [x] Fine tuning (on going)
 - [ ] Co-attention
 - [ ] alignment-attention model
 - [ ] Check what gained for new model VS old model VS pure text model by inspecting errors
-
-- [ ] Statistical fidility
+(on going) error rate decrease for ARG-LOC,:
+- [ ] Statistical fidility (on going) trained 2 models for each setting, need more
 ## Next Step
 ## Objective
 

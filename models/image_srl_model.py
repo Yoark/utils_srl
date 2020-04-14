@@ -167,6 +167,7 @@ class ImageSRL(SemanticRoleLabeler):
                 # TODO (nfliu): This is kind of a hack, consider splitting out part
                 # of decode() to a separate function.
                 batch_bio_predicted_tags = self.decode(output_dict).pop("tags")
+                #! put something here to catch the gold tags.
                 batch_conll_predicted_tags = [
                     convert_bio_tags_to_conll_format(tags) for tags in batch_bio_predicted_tags
                 ]
