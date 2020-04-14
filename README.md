@@ -2,7 +2,7 @@
 
 # Plan
 
-## Current Week
+## Last Week
 
 - [x] Cleaned and Create over 5000 flicker data points ready to use for fine tuning or evaluation
 
@@ -16,16 +16,18 @@
 
 - [x] Create resnet features for Flicker dataset and converted flicker evaluation data to old model format
 
-## Next Step
-
+## This week
+- [ ] Ask About removing some examples from the Flicker dataset.
 - [x] Another loader bug!!!
-- [ ] ==Data source==
-- [ ] Danny dag (Oregon State uNiv)
+- [i] ==Data source==
+- [x] Danny dag (Oregon State uNiv)
 - [ ] Fine tuning
 - [ ] Co-attention
 - [ ] alignment-attention model
 - [ ] Check what gained for new model VS old model VS pure text model by inspecting errors
 
+- [ ] Statistical fidility
+## Next Step
 ## Objective
 
 - [x] Build multimodel that read in image + caption, outputs: srl labels for captions
