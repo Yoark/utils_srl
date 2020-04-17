@@ -27,12 +27,17 @@
 - [ ] Check what gained for new model VS old model VS pure text model by inspecting errors
 (on going) error rate decrease for ARG-LOC,:
 - [ ] Statistical fidility (on going) trained 2 models for each setting, need more
+- [ ] Boostrapping sampling
+- [ ] 2000 - 20,000 words for cognitive science class
 ## Next Step
 ## Objective
 
 - [x] Build multimodel that read in image + caption, outputs: srl labels for captions
 - [ ] Investigate the interaction between image and caption (mainly observe the attention learned)
 - [ ] Iterate
+- [ ] Confusion matrix
+- [ ] Per predicate consistency between performance and frequency
+- [ ] exclude unexistable 
 
 ## Dataloader
 - [x] try naive solution currently have
