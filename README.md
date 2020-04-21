@@ -17,9 +17,9 @@
 - [x] Create resnet features for Flicker dataset and converted flicker evaluation data to old model format
 
 ## This week
-- [ ] Ask About removing some examples from the Flicker dataset.
+- [x] Ask About removing some examples from the Flicker dataset.
 - [x] Another loader bug!!!
-- [i] ==Data source==
+- [x] ==Data source==
 - [x] Danny dag (Oregon State uNiv)
 - [x] Fine tuning (on going)
 - [ ] Co-attention
@@ -34,9 +34,10 @@
 
 - [x] Build multimodel that read in image + caption, outputs: srl labels for captions
 - [ ] Investigate the interaction between image and caption (mainly observe the attention learned)
+- [ ] Check if the image one could help alleviate the neccessity of decoding, concretely, decrease the need of hard constraints, like no two identical proto roles for the same predicate.
 - [ ] Iterate
-- [ ] Confusion matrix
-- [ ] Per predicate consistency between performance and frequency
+- [x] Confusion matrix
+- [o] Per predicate consistency between performance and frequency
 - [ ] exclude unexistable 
 
 ## Dataloader
