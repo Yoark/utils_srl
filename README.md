@@ -2,7 +2,25 @@
 
 # Plan
 
-## Last Week
+
+
+## This Week
+
+- [ ] Check if the image one could help alleviate the neccessity of decoding, concretely, decrease the need of hard constraints, like no two identical proto roles for the same predicate.
+
+- [ ] The evaluation metrics
+
+- [ ] Results of average F1, (small sample, 5, 20 epochs)
+
+  - [ ] ```
+    attn :0.7534545065112997 , old : 0.7434289401331587  text: 0.7500537854210754
+    ```
+
+- [ ] Check the attention part
+
+- [ ] Paper review writing 
+
+## Past
 
 - [x] Cleaned and Create over 5000 flicker data points ready to use for fine tuning or evaluation
 
@@ -16,7 +34,6 @@
 
 - [x] Create resnet features for Flicker dataset and converted flicker evaluation data to old model format
 
-## This week
 - [x] Ask About removing some examples from the Flicker dataset.
 - [x] Another loader bug!!!
 - [x] ==Data source==
@@ -24,12 +41,10 @@
 - [x] Fine tuning (on going)
 - [ ] Co-attention
 - [ ] alignment-attention model
-- [ ] Check what gained for new model VS old model VS pure text model by inspecting errors
+- [x] Check what gained for new model VS old model VS pure text model by inspecting errors
 (on going) error rate decrease for ARG-LOC,:
 - [ ] Statistical fidility (on going) trained 2 models for each setting, need more
 - [ ] Boostrapping sampling
-- [ ] 2000 - 20,000 words for cognitive science class
-## Next Step
 ## Objective
 
 - [x] Build multimodel that read in image + caption, outputs: srl labels for captions
