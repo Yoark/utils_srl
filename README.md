@@ -19,6 +19,7 @@
 - [ ] Check the attention part
 
 - [ ] Paper review writing 
+- [ ] Maybe, vision is not neccessaey for this task?
 
 ## Past
 
