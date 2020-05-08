@@ -18,7 +18,13 @@
 
 - [ ] Check the attention part
 
-- [ ] Paper review writing 
+- [ ] Paper review writing
+
+- [ ] Before and after decoding comparision,
+
+  - [ ] image may 
+
+- [ ] Argument level confusion matrix
 
 ## Past
 
