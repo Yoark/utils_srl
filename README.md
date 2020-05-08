@@ -18,6 +18,7 @@
 
 - [ ] Check the attention part
 
+<<<<<<< HEAD
 - [ ] Paper review writing
 
 - [ ] Before and after decoding comparision,
@@ -25,6 +26,10 @@
   - [ ] image may 
 
 - [ ] Argument level confusion matrix
+=======
+- [ ] Paper review writing 
+- [ ] Maybe, vision is not neccessaey for this task?
+>>>>>>> caf4ec812930196972916111121ef671fac3ad01
 
 ## Past
 
