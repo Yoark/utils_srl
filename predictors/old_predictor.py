@@ -11,4 +11,6 @@ class OldPredictor(Predictor):
         outputs['tokens'] = [str(token) for token in instance.fields['tokens']]
         outputs['predict'] = [label_vocab[i] for i in outputs['logits'].argmax(1)]
         outputs['gold'] = instance.fields['tags'].labels
+        outputs['metadata'] = instance.fields['metadata'].metadata
+        
         return sanitize(outputs)

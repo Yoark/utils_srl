@@ -11,6 +11,6 @@ class TextPredictor(Predictor):
         outputs['tokens'] = [str(token) for token in instance.fields['tokens']]
         outputs['predict'] = [label_vocab[i] for i in outputs['logits'].argmax(1)]
         outputs['gold'] = instance.fields['tags'].labels
-        import ipdb; ipdb.set_trace()
+        outputs['metadata'] = instance.fields['metadata'].metadata
         return sanitize(outputs)
 
